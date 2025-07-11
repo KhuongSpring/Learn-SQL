@@ -150,3 +150,5 @@ Có một số quy luật thường thấy khi chọn một cột (hoặc tập 
 - Cách tạo index trong **PostgreSQL**:
 
     `CREATE INDEX index_name ON table_name (COLUMN1, COLUMN2,...)`
+
+  
