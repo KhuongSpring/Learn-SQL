@@ -150,3 +150,86 @@ Có một số quy luật thường thấy khi chọn một cột (hoặc tập 
 - Cách tạo index trong **PostgreSQL**:
 
     `CREATE INDEX index_name ON table_name (COLUMN1, COLUMN2,...)`
+
+### 2. Phân tích truy vấn với EXPLAIN / EXPLAIN ANALYZE
+
+- Khái niệm: Cung cấp kế hoạch thực thi của câu lệnh `SELECT`, cho biết DB sẽ:
+    - Quét bao nhiêu dòng.
+    - Dùng index nào.
+    - Có đang full scan bảng không.
+- `EXPLAIN`: `EXPLAIN SELECT * FROM users WHERE age > 30;`
+-> Trả về thông tin như:
+    - `type`: kiểu truy vấn (`ALL`, `index`, `range`, `ref`, `const`, `eq_ref`)
+    - `possible_keys`: các index có thể dùng.
+    - `key`: index thực sự dùng.
+    - `rows`: số dòng ước tính cần quét.
+- `EXPLAIN ANALYZE` (PosgreSQL): Thêm thời gian thực thi thật sự của từng bước.
+- Lưu ý:
+    - `type = ALL`: full table scan -> cần tối ưu.
+    - `Using where`: truy vấn lọc dữ liệu nhưng có thể chưa dùng index.
+    - `Using index`: covering index - chỉ cần đọc index, không phải table.
+
+### 3. Tối ưu `LIMIT` và `OFFSET`
+
+- Vấn đề: Khi dùng `LIMIT 10 OFFSET 10000`, DB vẫn phải quét **10010** dòng rồi mới trả về 10 dòng cuối.
+- Giải pháp: **seek method** / **keyset pagination** (dựa trên ID):
+`SELECT * FROM products WHERE id > last_seen_id ORDER BY id LIMIT 10;`
+    - Dùng index để tăng tốc phân trang.
+    - Không dùng `OFFSET` lớn nếu không cần thiết.
+
+### 4. Partition
+
+- Khái niệm: Chia bảng lớn thành nhiều phần (partition), giúp tối ưu truy vấn, đặc biệt là với big data.
+- Các loại partition:
+    - **Range**: Theo khoảng (vd: năm, tháng).
+    - **List**: Theo danh sách giá trị.
+    - **Hash**: Theo hàm băm giá trị.
+    - **Composite**: Kết hợp nhiều kiểu.
+- Khi nào nên dùng partition:
+    - Bảng rất lớn (hàng triệu dòng).
+    - Truy vấn thường dùng theo ngày, tháng, năm.
+
+### 5. Caching ở tầng database
+
+- Khái niệm: Lưu tạm kết quả truy vấn ở RAM để dùng lại nhanh hơn.
+- Các hình thức caching:
+    - **Query Cache (DB)**: Lưu kết quả câu truy vấn (`SELECT`).
+    - **Materialized View**: Bảng lưu kết quả truy vấn định kỳ.
+    - **Application Cache**: Cache ở tầng code (Redis, Memcached).
+    - **Prepared Statement**: Cache kế hoạch thực thi truy vấn.
+- Khi nào nên dùng cache:
+    - Câu truy vấn nặng, lặp lại nhiều.
+    - Dữ liệu không đổi thường xuyên.
+    - Giảm tải DB, tăng tốc API.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
